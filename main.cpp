@@ -50,9 +50,6 @@ int main(int argc, char* argv[])
 	input.read(reinterpret_cast<char*>(&directoryEntry.nEntries), sizeof(int));
 	std::cout << "parsing the demo file...\n";
 
-	// TODO: rewrite without iterating over directory entries?
-	// just seek whatever bytes from the end and read
-	// number of frames and offset for PLAYBACK
 	for (int i = 0; i < directoryEntry.nEntries; ++i) {
 		demoentry_t demoEntry;	
 		input.seekg(offsetof(demoentry_t, nFrames), std::ios_base::cur);
