@@ -13,7 +13,6 @@ int main(int argc, char* argv[])
 {
 	if (argc == 1) {
 		std::cout << "bxt-demotimer.exe <demoname>\n";
-		waitForEnter();
 		return 1;
 	}
 	
@@ -21,7 +20,6 @@ int main(int argc, char* argv[])
 	
 	if (!input.is_open()) {
 		std::cout << "couldn't open the file.\n";
-		waitForEnter();
 		return 1;
 	}
 
@@ -29,7 +27,6 @@ int main(int argc, char* argv[])
 	input.read(demoHeader.szFileStamp, sizeof(demoHeader.szFileStamp));
 	if (std::strncmp(demoHeader.szFileStamp, "HLDEMO", 6)) {
 		std::cout << "not a goldsrc demo.\n";
-		waitForEnter();
 		return 1;
 	}
 
@@ -38,7 +35,6 @@ int main(int argc, char* argv[])
 	
 	if (demoHeader.nNetProtocol < 46) {
 		std::cout << "unsupported net protocol, demo was probably recorded on the original WON version.\n";
-		waitForEnter();
 		return 1;
 	}
 
@@ -173,7 +169,6 @@ int main(int argc, char* argv[])
 			break;
 		}
 	}
-	waitForEnter();
 	return 0;
 }
 
