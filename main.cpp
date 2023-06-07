@@ -59,19 +59,17 @@ int main(int argc, char* argv[])
 		input.seekg(demoEntry.nOffset, std::ios_base::beg);
 
 		demo_command_t demoFrame;
-		input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 		int sampleCount = 0, bufferSize = 0, msglen = 0;
 		BxtData bxtData; std::vector<uint8_t> packedBxtBytes; static bool isBxtDemo;
 
 		do {
+			input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
+			input.seekg(8, std::ios_base::cur);
+
 			switch (demoFrame.cmd) {
 			case DemoFrameType::DEMO_START:
-				input.seekg(8, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::CONSOLE_COMMAND:
-				input.seekg(8, std::ios_base::cur);
 				// handle //BXTD0 here
 				input.read(bxtData.header, 7);
 				if (!std::strncmp(bxtData.header, "//BXTD0", 7)) {
@@ -88,53 +86,33 @@ int main(int argc, char* argv[])
 				} else {
 					input.seekg(57, std::ios_base::cur);
 				}
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::CLIENT_DATA:
-				input.seekg(8, std::ios_base::cur);
 				input.seekg(32, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::NEXT_SECTION:
 				break;
 			case DemoFrameType::EVENT:
-				input.seekg(8, std::ios_base::cur);
 				input.seekg(84, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::WEAPON_ANIM:
 				input.seekg(8, std::ios_base::cur);
-				input.seekg(8, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::SOUND:
-				input.seekg(8, std::ios_base::cur);
 				input.seekg(4, std::ios_base::cur);
 				input.read(reinterpret_cast<char*>(&sampleCount), sizeof(int));
 				input.seekg(sampleCount, std::ios_base::cur);
 				input.seekg(16, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			case DemoFrameType::DEMO_BUFFER:
-				input.seekg(8, std::ios_base::cur);
 				input.read(reinterpret_cast<char*>(&bufferSize), sizeof(int));
 				input.seekg(bufferSize, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			default:
-				input.seekg(8, std::ios_base::cur);
 				input.seekg(netMsgSize, std::ios_base::cur);
 				input.seekg(28, std::ios_base::cur);
 				input.read(reinterpret_cast<char*>(&msglen), sizeof(int));
 				input.seekg(msglen, std::ios_base::cur);
-
-				input.read(reinterpret_cast<char*>(&demoFrame.cmd), sizeof(uint8_t));
 				break;
 			}
 		} while (demoFrame.cmd != DemoFrameType::NEXT_SECTION);
@@ -147,6 +125,7 @@ int main(int argc, char* argv[])
 			std::cout << "reached the end of the demo\n";
 
 			if (!isBxtDemo) {
+				input.seekg(-8, std::ios_base::cur);
 				input.read(reinterpret_cast<char*>(&demoFrame.time), sizeof(float));
 				input.read(reinterpret_cast<char*>(&demoFrame.frame), sizeof(int));
 				std::cout << "this demo was not recorded with BXT, however here's some information the game provides itself when you stop a demo:\n";
