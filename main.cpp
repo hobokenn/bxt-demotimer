@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 		return 1;
 	}
 	
-	std::ifstream input(argv[1], std::ios::binary | std::ios::in);
+	std::ifstream input(argv[1], std::ios::binary);
 	
 	if (!input.is_open()) {
 		std::cout << "couldn't open the file.\n";
