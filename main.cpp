@@ -33,10 +33,13 @@ int main(int argc, char* argv[])
 	input.seekg(offsetof(demoheader_t, nNetProtocol), std::ios_base::beg);
 	input.read(reinterpret_cast<char*>(&demoHeader.nNetProtocol), sizeof(int));
 	
-	if (demoHeader.nNetProtocol < 46) {
-		std::cout << "unsupported net protocol, demo was probably recorded on the original WON version.\n";
+	if (demoHeader.nNetProtocol < 43) {
+		std::cout << "unsupported net protocol: " << demoHeader.nNetProtocol << std::endl;
 		return 1;
 	}
+
+	// steam = 436, won 1712 = 436 - 24 + 120
+	int netMsgSize = demoHeader.nNetProtocol == 43 ? 532 : 436;
 
 	input.seekg(offsetof(demoheader_t, nDirectoryOffset), std::ios_base::beg);
 	input.read(reinterpret_cast<char*>(&demoHeader.nDirectoryOffset), sizeof(int));
@@ -129,7 +132,7 @@ int main(int argc, char* argv[])
 				break;
 			default:
 				input.seekg(8, std::ios_base::cur);
-				input.seekg(436, std::ios_base::cur);
+				input.seekg(netMsgSize, std::ios_base::cur);
 				input.seekg(28, std::ios_base::cur);
 				input.read(reinterpret_cast<char*>(&msglen), sizeof(int));
 				input.seekg(msglen, std::ios_base::cur);
