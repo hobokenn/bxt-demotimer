@@ -11,7 +11,7 @@
 
 int main(int argc, char* argv[])
 {
-	if (argc == 1) {
+	if (argc != 2) {
 		std::cout << "bxt-demotimer.exe <demoname>\n";
 		return 1;
 	}
