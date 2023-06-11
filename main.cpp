@@ -9,6 +9,8 @@
 #include <cassert>
 #include "demo.h"
 
+Time bxtTime;
+
 int main(int argc, char* argv[])
 {
 	if (argc != 2) {
@@ -143,7 +145,7 @@ int main(int argc, char* argv[])
 			while (packedBxtBytes.back() == FILL_BYTE)
 				packedBxtBytes.pop_back();
 
-			getLastBxtTime(packedBxtBytes);
+			printBxtTime();
 
 			break;
 		}
@@ -185,38 +187,24 @@ std::vector<uint8_t> getOriginalBytes(const std::vector<uint8_t> &bytes)
 	return out;
 }
 
-void getLastBxtTime(const std::vector<uint8_t> &bytes)
 {
-	// unless BXT code changes and time is not the last thing written
-	// to a demo on CL_Stop_f(), this code should work https://cdn.7tv.app/emote/6268904f4f54759b7184fa72/4x.webp
-	// until then this is the laziest solution i could think of.
-	char buf[15];
-	std::memcpy(&buf, &bytes.back() - 14, 15);
-	std::string str = std::string(buf, 15);
-	
-	std::istringstream ss(str, std::ios::binary);
-	Time time; char type;
-	ss.read(&type, 1);
-	assert(type == '\3' && "what the hell is going on?");
 
-	ss.read(reinterpret_cast<char*>(&time.hours), sizeof(uint32_t));
-	ss.read(reinterpret_cast<char*>(&time.minutes), sizeof(uint8_t));
-	ss.read(reinterpret_cast<char*>(&time.seconds), sizeof(uint8_t));
-	ss.read(reinterpret_cast<char*>(&time.remainder), sizeof(double));
 
+void printBxtTime()
+{
 	// pretty ugly
-	if (time.hours == 0 && time.minutes == '\0' && time.seconds == '\0')
+	if (bxtTime.hours == 0 && bxtTime.minutes == '\0' && bxtTime.seconds == '\0')
 		std::cout << std::fixed << std::setprecision(3)
-		<< "bxt demo time: " <<  time.remainder << '\n';
-	else if (time.hours == 0 && time.minutes == '\0')
+		<< "bxt demo time: " <<  bxtTime.remainder << '\n';
+	else if (bxtTime.hours == 0 && bxtTime.minutes == '\0')
 		std::cout << std::fixed << std::setprecision(3)
-		<< "bxt demo time: " << time.seconds + time.remainder << '\n';
-	else if (time.hours == 0)
+		<< "bxt demo time: " << bxtTime.seconds + bxtTime.remainder << '\n';
+	else if (bxtTime.hours == 0)
 		std::cout << std::fixed << std::setprecision(3)
-		<< "bxt demo time: " << static_cast<int>(time.minutes) << ":"
-		<< time.seconds + time.remainder << '\n';
+		<< "bxt demo time: " << static_cast<int>(bxtTime.minutes) << ":"
+		<< bxtTime.seconds + bxtTime.remainder << '\n';
 	else
 		std::cout << std::fixed << std::setprecision(3)
-		<< "bxt demo time: " << time.hours << ":" << static_cast<int>(time.minutes)
-		<< ":" << time.seconds + time.remainder << '\n';
+		<< "bxt demo time: " << bxtTime.hours << ":" << static_cast<int>(bxtTime.minutes)
+		<< ":" << bxtTime.seconds + bxtTime.remainder << '\n';
 }
