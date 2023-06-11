@@ -141,7 +141,13 @@ int main(int argc, char* argv[])
 			for (size_t i = 0; i < unEscapedBytes.size(); i += 8)
 				TEA_Decrypt(reinterpret_cast<uint32_t*>(unEscapedBytes.data() + i), KEY);
 
+#if 0
+			std::string outFile = "bxt-data.bin";
+			std::ofstream ostrm(outFile, std::ios::binary);
 
+			for (auto byte : unEscapedBytes)
+				ostrm << byte;
+#endif
 			parseBxtData(unEscapedBytes);
 			printBxtTime();
 
