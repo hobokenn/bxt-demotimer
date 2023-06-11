@@ -141,10 +141,8 @@ int main(int argc, char* argv[])
 			for (size_t i = 0; i < unEscapedBytes.size(); i += 8)
 				TEA_Decrypt(reinterpret_cast<uint32_t*>(unEscapedBytes.data() + i), KEY);
 
-			assert(!packedBxtBytes.empty());
-			while (packedBxtBytes.back() == FILL_BYTE)
-				packedBxtBytes.pop_back();
 
+			parseBxtData(unEscapedBytes);
 			printBxtTime();
 
 			break;
@@ -187,8 +185,91 @@ std::vector<uint8_t> getOriginalBytes(const std::vector<uint8_t> &bytes)
 	return out;
 }
 
+void parseBxtData(const std::vector<uint8_t> &bytes)
 {
+	std::stringstream ss;
+	std::copy(bytes.cbegin(), bytes.cend(), std::ostream_iterator<uint8_t>(ss));
 
+	unsigned numDataTypes = 0, numCvars = 0;
+	RuntimeDataType dataType{};
+
+	for (;;) {
+		while (ss.tellg() % 8 != 0)
+			ss.seekg(1, std::ios_base::cur);
+
+		ss.read(reinterpret_cast<char*>(&numDataTypes), sizeof(unsigned));
+
+		if (ss.eof())
+			break;
+
+		for (unsigned i = 0; i < numDataTypes; ++i) {
+			ss.read(reinterpret_cast<char*>(&dataType), sizeof(uint8_t));
+
+			switch (dataType) {
+			case RuntimeDataType::VERSION_INFO:
+				ss.seekg(4, std::ios_base::cur);
+				skipString(ss);
+				break;
+			case RuntimeDataType::CVAR_VALUES:
+				ss.read(reinterpret_cast<char*>(&numCvars), sizeof(unsigned));
+				for (unsigned j = 0; j < numCvars; ++j) {
+					skipString(ss);
+					skipString(ss);
+				}
+				break;
+			case RuntimeDataType::TIME:
+				ss.read(reinterpret_cast<char*>(&bxtTime.hours), sizeof(int));
+				ss.read(reinterpret_cast<char*>(&bxtTime.minutes), sizeof(uint8_t));
+				ss.read(reinterpret_cast<char*>(&bxtTime.seconds), sizeof(uint8_t));
+				ss.read(reinterpret_cast<char*>(&bxtTime.remainder), sizeof(double));
+				break;
+			case RuntimeDataType::BOUND_COMMAND:
+				skipString(ss);
+				break;
+			case RuntimeDataType::ALIAS_EXPANSION:
+				skipString(ss);
+				skipString(ss);
+				break;
+			case RuntimeDataType::SCRIPT_EXECUTION:
+				skipString(ss);
+				skipString(ss);
+				break;
+			case RuntimeDataType::COMMAND_EXECUTION:
+				skipString(ss);
+				break;
+			case RuntimeDataType::GAME_END_MARKER:
+				// ?
+				break;
+			case RuntimeDataType::LOADED_MODULES:
+				// check some old demo
+				// std::vector<std::string> filenames;
+				break;
+			case RuntimeDataType::CUSTOM_TRIGGER_COMMAND:
+				ss.seekg(24, std::ios_base::cur);
+				skipString(ss);
+				break;
+			case RuntimeDataType::EDICTS:
+				ss.seekg(4, std::ios_base::cur);
+				break;
+			case RuntimeDataType::PLAYERHEALTH:
+				ss.seekg(4, std::ios_base::cur);
+				break;
+			case RuntimeDataType::SPLIT_MARKER:
+				ss.seekg(24, std::ios_base::cur);
+				skipString(ss);
+				skipString(ss);
+				break;
+			}
+		}
+	}
+}
+
+inline void skipString(std::stringstream &ss)
+{
+	int strLen = 0;
+	ss.read(reinterpret_cast<char*>(&strLen), sizeof(int));
+	ss.seekg(strLen, std::ios_base::cur);
+}
 
 void printBxtTime()
 {
