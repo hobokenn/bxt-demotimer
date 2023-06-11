@@ -6,7 +6,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
-#include <cassert>
+
 #include "demo.h"
 
 Time bxtTime;
