@@ -134,10 +134,10 @@ int main(int argc, char* argv[])
 				break;
 			}
 
-			getOriginalBytes(packedBxtBytes);
+			auto unEscapedBytes = getOriginalBytes(packedBxtBytes);
 
-			for (size_t i = 0; i < packedBxtBytes.size(); i += 8)
-				TEA_Decrypt(reinterpret_cast<uint32_t*>(packedBxtBytes.data() + i), KEY);
+			for (size_t i = 0; i < unEscapedBytes.size(); i += 8)
+				TEA_Decrypt(reinterpret_cast<uint32_t*>(unEscapedBytes.data() + i), KEY);
 
 			assert(!packedBxtBytes.empty());
 			while (packedBxtBytes.back() == FILL_BYTE)
@@ -163,21 +163,26 @@ void TEA_Decrypt(uint32_t v[2], const uint32_t k[4]) {
 	v[0] = v0; v[1] = v1;
 }
 
-void getOriginalBytes(std::vector<uint8_t> &bytes)
+std::vector<uint8_t> getOriginalBytes(const std::vector<uint8_t> &bytes)
 {
-	for (auto it = bytes.begin(); it != bytes.end(); ++it) {
+	std::vector <uint8_t> out;
+	for (auto it = bytes.cbegin(); it != bytes.cend(); ++it) {
 
-		if (std::next(it, 1) == bytes.end())
+		if (std::next(it) == bytes.cend()) {
+			out.emplace_back(*it);
 			break;
-
-		uint8_t nextChar = *std::next(it, 1);
-		auto escaped = ESCAPE_CHARACTERS.find(nextChar);
-		if (it[0] == ESCAPE_BYTE && nextChar == escaped->first) {
-			// is this slow? probably
-			it = bytes.erase(it, std::next(it, 2));
-			it = bytes.emplace(it, escaped->second);
 		}
+
+		auto nextChar = *std::next(it);
+		auto escaped = ESCAPE_CHARACTERS.find(nextChar);
+		if (*it == ESCAPE_BYTE && nextChar == escaped->first) {
+			out.emplace_back(escaped->second);
+			it++;
+			continue;
+		}
+		out.emplace_back(*it);
 	}
+	return out;
 }
 
 void getLastBxtTime(const std::vector<uint8_t> &bytes)

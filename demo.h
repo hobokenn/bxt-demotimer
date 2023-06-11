@@ -1,6 +1,6 @@
 #pragma once
 
-void getOriginalBytes(std::vector<uint8_t> &bytes);
+std::vector<uint8_t> getOriginalBytes(const std::vector<uint8_t> &bytes);
 void TEA_Decrypt(uint32_t v[2], const uint32_t k[4]);
 void getLastBxtTime(const std::vector<uint8_t> &bytes);
 
