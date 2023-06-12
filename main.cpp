@@ -196,7 +196,7 @@ void parseBxtData(const std::vector<uint8_t> &bytes)
 	std::stringstream ss;
 	std::copy(bytes.cbegin(), bytes.cend(), std::ostream_iterator<uint8_t>(ss));
 
-	unsigned numDataTypes = 0, numCvars = 0;
+	unsigned numDataTypes = 0, numElements = 0;
 	RuntimeDataType dataType{};
 
 	for (;;) {
@@ -217,8 +217,8 @@ void parseBxtData(const std::vector<uint8_t> &bytes)
 				skipString(ss);
 				break;
 			case RuntimeDataType::CVAR_VALUES:
-				ss.read(reinterpret_cast<char*>(&numCvars), sizeof(unsigned));
-				for (unsigned j = 0; j < numCvars; ++j) {
+				ss.read(reinterpret_cast<char*>(&numElements), sizeof(unsigned));
+				for (unsigned j = 0; j < numElements; ++j) {
 					skipString(ss);
 					skipString(ss);
 				}
@@ -244,11 +244,11 @@ void parseBxtData(const std::vector<uint8_t> &bytes)
 				skipString(ss);
 				break;
 			case RuntimeDataType::GAME_END_MARKER:
-				// ?
 				break;
 			case RuntimeDataType::LOADED_MODULES:
-				// check some old demo
-				// std::vector<std::string> filenames;
+				ss.read(reinterpret_cast<char*>(&numElements), sizeof(unsigned));
+				for (unsigned j = 0; j < numElements; ++j)
+					skipString(ss);
 				break;
 			case RuntimeDataType::CUSTOM_TRIGGER_COMMAND:
 				ss.seekg(24, std::ios_base::cur);
